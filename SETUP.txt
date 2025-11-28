@@ -1,0 +1,21 @@
+SETUP INSTRUCTIONS
+==================
+
+1. Install dependencies:
+   npm install
+
+2. Update Firestore security rules (IMPORTANT):
+   - Go to Firebase Console > Firestore Database > Rules
+   - Copy rules from FIRESTORE_RULES.txt
+   - Click "Publish"
+
+3. Run locally:
+   npm start
+
+4. Build for production:
+   npm run build
+
+5. Deploy to Firebase:
+   firebase deploy
+
+DONE! Your app is at: https://nextelite-89f47.web.app

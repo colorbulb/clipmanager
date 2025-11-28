@@ -1,0 +1,8 @@
+{
+  "hosting": {
+    "public": "build",
+    "site":"clipmanager",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{"source": "**", "destination": "/index.html"}]
+  }
+}
