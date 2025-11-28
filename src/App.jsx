@@ -198,26 +198,28 @@ function App() {
         <div className="header-actions">
           <span className="user-email">👤 {user.email}</span>
           <button 
-            className="btn-manage"
-            onClick={() => setShowManager(true)}
-          >
-            ⚙️ Manage
-          </button>
-          <button 
             className="btn-logout"
             onClick={() => auth.signOut()}
           >
             🚪 Logout
           </button>
-          <button 
-            className="btn-add-new"
-            onClick={() => {
-              setShowForm(true);
-              setEditingClip(null);
-            }}
-          >
-            ➕ Add New Clip
-          </button>
+          <div className="header-buttons-row">
+            <button 
+              className="btn-manage"
+              onClick={() => setShowManager(true)}
+            >
+              ⚙️ Manage
+            </button>
+            <button 
+              className="btn-add-new"
+              onClick={() => {
+                setShowForm(true);
+                setEditingClip(null);
+              }}
+            >
+              ➕ Add New Clip
+            </button>
+          </div>
         </div>
       </header>
 
