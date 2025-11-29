@@ -2,11 +2,43 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    
+    <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cloud Clipboard" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#667eea" />
     <meta name="description" content="Cloud Clipboard - Sync across all devices" />
+    
+    <!-- iOS Splash Screens -->
+    <link rel="apple-touch-startup-image" href="/logo192.png" />
+    
     <title>📋 Cloud Clipboard</title>
+    
+    <style>
+      /* Prevent address bar from showing on mobile */
+      html {
+        height: 100%;
+        height: -webkit-fill-available;
+      }
+      body {
+        min-height: 100%;
+        min-height: -webkit-fill-available;
+        margin: 0;
+        padding: 0;
+        /* Prevent pull-to-refresh on mobile */
+        overscroll-behavior-y: none;
+      }
+      /* Safe area for notched devices */
+      @supports (padding: max(0px)) {
+        body {
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+        }
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

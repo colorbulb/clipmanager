@@ -7,6 +7,7 @@ import ClipboardList from './components/ClipboardList';
 import ClipboardForm from './components/ClipboardForm';
 import SearchBar from './components/SearchBar';
 import TagCategoryManager from './components/TagCategoryManager';
+import DevTools from './components/DevTools';
 import './App.css';
 
 function App() {
@@ -91,15 +92,45 @@ function App() {
     }
   };
 
+  // Function to convert HTML to plain text while preserving whitespace and indentation
+  const htmlToPlainText = (html) => {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // Preserve whitespace by setting CSS - critical for Safari
+    tempDiv.style.whiteSpace = 'pre-wrap';
+    tempDiv.style.display = 'block';
+    
+    // Process lists to add proper prefixes
+    const lists = tempDiv.querySelectorAll('ul, ol');
+    lists.forEach(list => {
+      const items = list.querySelectorAll('li');
+      const isOrdered = list.tagName === 'OL';
+      items.forEach((li, index) => {
+        const prefix = isOrdered ? `${index + 1}. ` : '• ';
+        const text = li.textContent || li.innerText || '';
+        li.textContent = prefix + text;
+      });
+    });
+    
+    // Use innerText which preserves visual formatting better than textContent
+    // innerText respects CSS and preserves line breaks
+    let text = tempDiv.innerText || tempDiv.textContent || '';
+    
+    // Normalize excessive whitespace but preserve structure
+    text = text.replace(/[ \t]+/g, ' '); // Collapse multiple spaces/tabs to single space
+    text = text.replace(/\n{3,}/g, '\n\n'); // Limit to max 2 consecutive newlines
+    
+    return text.trim();
+  };
+
   const handleCopyClip = async (clip) => {
     try {
       // Get the HTML content
       const htmlContent = clip.content;
       
-      // Extract plain text as fallback
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = htmlContent;
-      const plainText = tempDiv.textContent || tempDiv.innerText;
+      // Extract plain text with preserved whitespace
+      const plainText = htmlToPlainText(htmlContent);
       
       // Create a ClipboardItem with both formats
       const clipboardItem = new ClipboardItem({
@@ -112,10 +143,8 @@ function App() {
     } catch (err) {
       // Fallback: copy plain text
       try {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = clip.content;
-        const text = tempDiv.textContent || tempDiv.innerText;
-        await navigator.clipboard.writeText(text);
+        const plainText = htmlToPlainText(clip.content);
+        await navigator.clipboard.writeText(plainText);
         alert('Copied to clipboard! ✓');
       } catch (fallbackErr) {
         console.error('Failed to copy:', fallbackErr);
@@ -314,6 +343,8 @@ function App() {
       <footer className="app-footer">
         <p>☁️ Powered by Next Elite</p>
       </footer>
+
+      <DevTools />
     </div>
   );
 }
