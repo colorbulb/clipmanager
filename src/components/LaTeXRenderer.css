@@ -1,0 +1,33 @@
+.latex-container {
+  line-height: 1.6;
+}
+
+.latex-inline {
+  display: inline-block;
+  margin: 0 2px;
+  vertical-align: middle;
+}
+
+.latex-block {
+  display: block;
+  margin: 15px 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* KaTeX overrides for better integration */
+.latex-container .katex {
+  font-size: 1em;
+}
+
+.latex-container .katex-display {
+  margin: 1em 0;
+}
+
+/* Ensure LaTeX doesn't break layout */
+.latex-container .katex-display > .katex {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+

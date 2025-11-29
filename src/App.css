@@ -975,6 +975,34 @@ body {
     word-wrap: break-word;
 }
 
+/* LaTeX rendering styles */
+.html-content .latex-inline {
+    display: inline-block;
+    margin: 0 2px;
+    vertical-align: middle;
+}
+
+.html-content .latex-block {
+    display: block;
+    margin: 15px 0;
+    text-align: center;
+    overflow-x: auto;
+}
+
+.html-content .katex {
+    font-size: 1em;
+}
+
+.html-content .katex-display {
+    margin: 1em 0;
+}
+
+.html-content .katex-display > .katex {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
 .html-content ul,
 .html-content ol {
     padding-left: 25px;

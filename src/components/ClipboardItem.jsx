@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { processLaTeXInHTML } from '../utils/latexProcessor';
+import 'katex/dist/katex.min.css';
 
 const ClipboardItem = ({ clip, onCopy, onEdit, onDelete }) => {
   const [copied, setCopied] = useState(false);
@@ -65,6 +67,11 @@ const ClipboardItem = ({ clip, onCopy, onEdit, onDelete }) => {
     }
   };
 
+  // Process LaTeX in content (memoized to avoid reprocessing)
+  const processedContent = useMemo(() => {
+    return clip.content ? processLaTeXInHTML(clip.content) : '';
+  }, [clip.content]);
+
   const createdDate = new Date(clip.createdAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -87,7 +94,7 @@ const ClipboardItem = ({ clip, onCopy, onEdit, onDelete }) => {
         {clip.content && (
           <div 
             className="html-content" 
-            dangerouslySetInnerHTML={{ __html: clip.content }}
+            dangerouslySetInnerHTML={{ __html: processedContent }}
           />
         )}
         
