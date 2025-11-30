@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /clips/{clipId} {
+      // Allow queries - the where('userId', '==', userId) clause filters to user's own clips
+      allow list: if request.auth != null;
+      
+      // Allow reading individual document if user owns it
+      allow get: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+      
+      // Allow creating clips with own userId
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.userId;
+      
+      // Allow updating own clips
+      allow update: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+      
+      // Allow deleting own clips
+      allow delete: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+    }
+  }
+}
+

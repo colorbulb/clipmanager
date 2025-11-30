@@ -16,6 +16,9 @@ fi
 
 # Deploy to Firebase
 echo "🚀 Deploying to Firebase..."
+echo "📋 Deploying Firestore rules..."
+firebase deploy --only firestore:rules
+echo "🌐 Deploying hosting..."
 firebase deploy --only hosting
 
 if [ $? -ne 0 ]; then
