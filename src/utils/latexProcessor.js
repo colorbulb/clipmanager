@@ -143,3 +143,4 @@ export const processLaTeXInHTML = (html) => {
   return tempDiv.innerHTML;
 };
 
+
