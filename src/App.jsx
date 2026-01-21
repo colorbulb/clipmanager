@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { auth } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { subscribeToClips, addClip as addClipService, updateClip as updateClipService, deleteClip as deleteClipService } from './services/clipboardService';
+import { createShareLink } from './services/shareService';
 import Auth from './components/Auth';
 import ClipboardList from './components/ClipboardList';
 import ClipboardForm from './components/ClipboardForm';
 import SearchBar from './components/SearchBar';
 import TagCategoryManager from './components/TagCategoryManager';
 import DevTools from './components/DevTools';
+import ShareView from './components/ShareView';
 import './App.css';
 
 function App() {
@@ -22,6 +24,7 @@ function App() {
   const [showManager, setShowManager] = useState(false);
   const [customTags, setCustomTags] = useState([]);
   const [customCategories, setCustomCategories] = useState([]);
+  const [shareId, setShareId] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -60,6 +63,14 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shareParam = params.get('share');
+    if (shareParam) {
+      setShareId(shareParam);
+    }
+  }, []);
+
   const handleAddClip = async (newClip) => {
     try {
       await addClipService(user.uid, newClip);
@@ -92,6 +103,31 @@ function App() {
     }
   };
 
+  const handleShareClip = async (clip) => {
+    if (!user) return;
+
+    const pin = window.prompt('Set a PIN for this share link (4-6 digits):');
+    if (!pin || pin.trim().length < 4) {
+      alert('PIN must be at least 4 digits.');
+      return;
+    }
+
+    try {
+      const shareDocId = await createShareLink({
+        clip,
+        ownerId: user.uid,
+        pin: pin.trim()
+      });
+
+      const shareUrl = `${window.location.origin}?share=${shareDocId}`;
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Share link copied to clipboard.');
+    } catch (error) {
+      console.error('Error creating share link:', error);
+      alert('Failed to create share link.');
+    }
+  };
+
   // Function to convert HTML to plain text while preserving whitespace and indentation
   const htmlToPlainText = (html) => {
     const tempDiv = document.createElement('div');
@@ -115,13 +151,10 @@ function App() {
     
     // Use innerText which preserves visual formatting better than textContent
     // innerText respects CSS and preserves line breaks
-    let text = tempDiv.innerText || tempDiv.textContent || '';
+    const text = tempDiv.innerText || tempDiv.textContent || '';
     
-    // Normalize excessive whitespace but preserve structure
-    text = text.replace(/[ \t]+/g, ' '); // Collapse multiple spaces/tabs to single space
-    text = text.replace(/\n{3,}/g, '\n\n'); // Limit to max 2 consecutive newlines
-    
-    return text.trim();
+    // Do not normalize or trim to preserve exact spacing/indentation
+    return text;
   };
 
   const handleCopyClip = async (clip) => {
@@ -211,6 +244,10 @@ function App() {
         <p>Loading...</p>
       </div>
     );
+  }
+
+  if (shareId) {
+    return <ShareView shareId={shareId} user={user} loading={loading} />;
   }
 
   if (!user) {
@@ -307,6 +344,7 @@ function App() {
         <ClipboardList
           clips={filteredClips}
           onCopy={handleCopyClip}
+          onShare={handleShareClip}
           onEdit={(clip) => {
             setEditingClip(clip);
             setShowForm(false);

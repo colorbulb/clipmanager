@@ -158,6 +158,22 @@ service cloud.firestore {
       allow delete: if isAuthenticated() 
         && request.auth.uid == resource.data.userId;
     }
+
+    match /clipShares/{shareId} {
+      allow get, list: if isAuthenticated();
+
+      allow create: if isAuthenticated()
+        && request.auth.uid == request.resource.data.ownerId;
+
+      allow update, delete: if isAuthenticated()
+        && request.auth.uid == resource.data.ownerId;
+
+      match /contributions/{contributionId} {
+        allow get, list: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if false;
+      }
+    }
     
     // ============================================
     // SHARED COLLECTIONS
@@ -186,6 +202,50 @@ service cloud.firestore {
     // Notifications collection (for push notifications)
     match /notifications/{notificationId} {
       allow get, list, create: if isAuthenticated();
+    }
+
+    // ============================================
+    // ============================================
+    // RESOLUTION LAB COLLECTIONS
+    // ============================================
+
+    function isResolutionAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Pairings between users (couples)
+    match /resolution_pairs/{pairId} {
+      allow get, list: if isAuthenticated() &&
+        (request.auth.uid in resource.data.memberUids || isResolutionAdmin());
+      allow create: if isAuthenticated() &&
+        request.resource.data.partnerAUid == request.auth.uid;
+      allow update: if isAuthenticated() &&
+        (request.auth.uid in resource.data.memberUids || isResolutionAdmin());
+      allow delete: if isResolutionAdmin();
+    }
+
+    // Admin-managed tags for The Resolution Lab (feelings, needs, categories)
+    match /resolution_tags/{tagId} {
+      allow get, list: if isAuthenticated();
+      allow create, update, delete: if isResolutionAdmin();
+    }
+
+    // Stored agreements from the Resolution Lab vault
+    match /resolution_agreements/{agreementId} {
+      allow get, list: if isAuthenticated() &&
+        (
+          resource.data.ownerUid == request.auth.uid ||
+          (
+            resource.data.pairId != null &&
+            exists(/databases/$(database)/documents/resolution_pairs/$(resource.data.pairId)) &&
+            request.auth.uid in get(/databases/$(database)/documents/resolution_pairs/$(resource.data.pairId)).data.memberUids
+          ) ||
+          isResolutionAdmin()
+        );
+      allow create: if isAuthenticated();
+      allow update, delete: if isResolutionAdmin();
     }
     
     // ============================================

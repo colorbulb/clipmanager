@@ -383,6 +383,11 @@ body {
     color: white;
 }
 
+.btn-share {
+    background: linear-gradient(135deg, #7F00FF 0%, #E100FF 100%);
+    color: white;
+}
+
 .btn-delete {
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
     color: white;

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { processLaTeXInHTML } from '../utils/latexProcessor';
 import 'katex/dist/katex.min.css';
 
-const ClipboardItem = ({ clip, onCopy, onEdit, onDelete }) => {
+const ClipboardItem = ({ clip, onCopy, onEdit, onDelete, onShare }) => {
   const [copied, setCopied] = useState(false);
 
   // Function to convert HTML to plain text while preserving whitespace and indentation
@@ -28,13 +28,10 @@ const ClipboardItem = ({ clip, onCopy, onEdit, onDelete }) => {
     
     // Use innerText which preserves visual formatting better than textContent
     // innerText respects CSS and preserves line breaks
-    let text = tempDiv.innerText || tempDiv.textContent || '';
+    const text = tempDiv.innerText || tempDiv.textContent || '';
     
-    // Normalize excessive whitespace but preserve structure
-    text = text.replace(/[ \t]+/g, ' '); // Collapse multiple spaces/tabs to single space
-    text = text.replace(/\n{3,}/g, '\n\n'); // Limit to max 2 consecutive newlines
-    
-    return text.trim();
+    // Do not normalize or trim to preserve exact spacing/indentation
+    return text;
   };
 
   const handleCopy = async () => {
@@ -127,6 +124,9 @@ const ClipboardItem = ({ clip, onCopy, onEdit, onDelete }) => {
         <div className="item-actions">
           <button onClick={handleCopy} className="btn-copy">
             {copied ? '✓ Copied!' : '📋 Copy'}
+          </button>
+          <button onClick={() => onShare?.(clip)} className="btn-share">
+            🔗 Share
           </button>
           <button onClick={() => onEdit(clip)} className="btn-edit">
             ✏️ Edit
