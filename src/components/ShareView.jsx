@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-import { addContribution, getShareById, subscribeToContributions } from '../services/shareService';
+import { getShareById, updateSharedClip } from '../services/shareService';
 import { hashPin } from '../utils/crypto';
 import { processLaTeXInHTML } from '../utils/latexProcessor';
+import ClipboardForm from './ClipboardForm';
 import './ShareView.css';
 
 const ShareView = ({ shareId, user, loading }) => {
@@ -14,9 +15,8 @@ const ShareView = ({ shareId, user, loading }) => {
   const [name, setName] = useState(localStorage.getItem('shareName') || '');
   const [verified, setVerified] = useState(false);
   const [pinError, setPinError] = useState('');
-  const [contribution, setContribution] = useState('');
-  const [contributions, setContributions] = useState([]);
   const [copyStatus, setCopyStatus] = useState('');
+  const [saveStatus, setSaveStatus] = useState('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -47,15 +47,10 @@ const ShareView = ({ shareId, user, loading }) => {
       }
     };
 
-    if (shareId) {
+    if (shareId && !loading && user) {
       loadShare();
     }
-  }, [shareId]);
-
-  useEffect(() => {
-    if (!verified) return undefined;
-    return subscribeToContributions(shareId, setContributions);
-  }, [shareId, verified]);
+  }, [shareId, loading, user]);
 
   const processedContent = useMemo(() => {
     if (!share?.clipSnapshot?.content) return '';
@@ -125,17 +120,24 @@ const ShareView = ({ shareId, user, loading }) => {
     setTimeout(() => setCopyStatus(''), 2000);
   };
 
-  const handleAddContribution = async () => {
-    if (!name.trim() || !contribution.trim()) return;
+  const handleSharedEdit = async (clipData) => {
+    if (!name.trim()) {
+      alert('Please enter your name.');
+      return;
+    }
     try {
-      await addContribution(shareId, {
-        name: name.trim(),
-        text: contribution.trim()
+      await updateSharedClip({
+        shareId,
+        clipId: share.clipId,
+        clipData,
+        editorName: name.trim()
       });
-      setContribution('');
+      setShare((prev) => prev ? { ...prev, clipSnapshot: { ...clipData } } : prev);
+      setSaveStatus('Saved!');
+      setTimeout(() => setSaveStatus(''), 2000);
     } catch (err) {
-      console.error('Failed to add contribution:', err);
-      alert('Failed to add contribution');
+      console.error('Failed to update shared clip:', err);
+      alert('Failed to update clip');
     }
   };
 
@@ -206,6 +208,18 @@ const ShareView = ({ shareId, user, loading }) => {
               )}
             </div>
 
+            <div className="share-name-edit">
+              <label>
+                Your name
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your name"
+                />
+              </label>
+            </div>
+
             {share.clipSnapshot?.content && (
               <div
                 className="share-html"
@@ -233,35 +247,18 @@ const ShareView = ({ shareId, user, loading }) => {
               <button className="share-btn" onClick={handleCopy}>
                 {copyStatus || 'Copy'}
               </button>
+              {saveStatus && <span className="share-save-status">{saveStatus}</span>}
             </div>
 
-            <div className="share-contribute">
-              <h3>Contribute</h3>
-              <textarea
-                value={contribution}
-                onChange={(e) => setContribution(e.target.value)}
-                placeholder="Add a note or suggestion..."
+            <div className="share-editor">
+              <h3>Edit Clip</h3>
+              <ClipboardForm
+                clip={{ id: share.clipId, ...(share.clipSnapshot || {}) }}
+                onSubmit={handleSharedEdit}
+                onCancel={() => {}}
+                existingTags={share.clipSnapshot?.tags || []}
+                existingCategories={share.clipSnapshot?.category ? [share.clipSnapshot.category] : []}
               />
-              <button className="share-btn" onClick={handleAddContribution}>
-                Add Contribution
-              </button>
-            </div>
-
-            <div className="share-contributions">
-              <h3>Contributions</h3>
-              {contributions.length === 0 ? (
-                <p className="share-empty">No contributions yet.</p>
-              ) : (
-                contributions.map((item) => (
-                  <div key={item.id} className="share-contribution">
-                    <div className="share-contribution-meta">
-                      <strong>{item.name || 'Anonymous'}</strong>
-                      <span>{new Date(item.createdAt).toLocaleString()}</span>
-                    </div>
-                    <p>{item.text}</p>
-                  </div>
-                ))
-              )}
             </div>
           </div>
         )}

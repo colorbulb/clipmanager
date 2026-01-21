@@ -6,7 +6,8 @@ import {
   onSnapshot,
   orderBy,
   query,
-  serverTimestamp
+  serverTimestamp,
+  updateDoc
 } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { hashPin } from '../utils/crypto';
@@ -64,5 +65,32 @@ export const addContribution = async (shareId, contribution) => {
   await addDoc(contributionsRef, {
     ...contribution,
     createdAt: serverTimestamp()
+  });
+};
+
+export const updateSharedClip = async ({ shareId, clipId, clipData, editorName }) => {
+  const shareRef = doc(db, SHARE_COLLECTION, shareId);
+  const clipRef = doc(db, 'clips', clipId);
+
+  const snapshotUpdate = {
+    title: clipData.title || '',
+    content: clipData.content || '',
+    images: clipData.images || [],
+    tags: clipData.tags || [],
+    category: clipData.category || ''
+  };
+
+  await updateDoc(shareRef, {
+    clipSnapshot: snapshotUpdate,
+    updatedAt: serverTimestamp(),
+    lastSharedEditorName: editorName || ''
+  });
+
+  await updateDoc(clipRef, {
+    ...snapshotUpdate,
+    lastSharedEditId: shareId,
+    lastSharedEditorName: editorName || '',
+    lastSharedEditedAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
   });
 };

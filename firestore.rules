@@ -150,9 +150,27 @@ service cloud.firestore {
       allow create: if isAuthenticated() 
         && request.auth.uid == request.resource.data.userId;
       
-      // Allow updating own clips
-      allow update: if isAuthenticated() 
-        && request.auth.uid == resource.data.userId;
+      // Allow updating own clips or via share link
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId ||
+        (
+          request.resource.data.userId == resource.data.userId &&
+          request.resource.data.lastSharedEditId is string &&
+          exists(/databases/$(database)/documents/clipShares/$(request.resource.data.lastSharedEditId)) &&
+          get(/databases/$(database)/documents/clipShares/$(request.resource.data.lastSharedEditId)).data.clipId == clipId &&
+          request.resource.data.diff(resource.data).changedKeys().hasOnly([
+            'title',
+            'content',
+            'images',
+            'tags',
+            'category',
+            'updatedAt',
+            'lastSharedEditId',
+            'lastSharedEditorName',
+            'lastSharedEditedAt'
+          ])
+        )
+      );
       
       // Allow deleting own clips
       allow delete: if isAuthenticated() 
@@ -165,7 +183,21 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && request.auth.uid == request.resource.data.ownerId;
 
-      allow update, delete: if isAuthenticated()
+      allow update: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId ||
+        (
+          request.resource.data.ownerId == resource.data.ownerId &&
+          request.resource.data.clipId == resource.data.clipId &&
+          request.resource.data.pinHash == resource.data.pinHash &&
+          request.resource.data.diff(resource.data).changedKeys().hasOnly([
+            'clipSnapshot',
+            'updatedAt',
+            'lastSharedEditorName'
+          ])
+        )
+      );
+
+      allow delete: if isAuthenticated()
         && request.auth.uid == resource.data.ownerId;
 
       match /contributions/{contributionId} {
