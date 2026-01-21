@@ -106,6 +106,18 @@ function App() {
   const handleShareClip = async (clip) => {
     if (!user) return;
 
+    if (clip.shareId) {
+      const shareUrl = `${window.location.origin}?share=${clip.shareId}`;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Share link copied to clipboard.');
+      } catch (error) {
+        console.error('Error copying share link:', error);
+        alert('Failed to copy share link.');
+      }
+      return;
+    }
+
     const pin = window.prompt('Set a PIN for this share link (4-6 digits):');
     if (!pin || pin.trim().length < 4) {
       alert('PIN must be at least 4 digits.');

@@ -397,6 +397,31 @@ body {
     transform: scale(1.05);
 }
 
+.share-link-row {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.share-link-input {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    font-size: 0.85rem;
+}
+
+.btn-share-link {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
 /* Form Overlay */
 .form-overlay {
     position: fixed;

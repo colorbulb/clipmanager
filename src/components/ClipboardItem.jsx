@@ -64,6 +64,19 @@ const ClipboardItem = ({ clip, onCopy, onEdit, onDelete, onShare }) => {
     }
   };
 
+  const shareUrl = clip.shareId ? `${window.location.origin}?share=${clip.shareId}` : '';
+
+  const handleCopyShareLink = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Share link copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy share link:', err);
+      alert('Failed to copy share link');
+    }
+  };
+
   // Process LaTeX in content (memoized to avoid reprocessing)
   const processedContent = useMemo(() => {
     return clip.content ? processLaTeXInHTML(clip.content) : '';
@@ -136,6 +149,20 @@ const ClipboardItem = ({ clip, onCopy, onEdit, onDelete, onShare }) => {
           </button>
         </div>
       </div>
+
+      {clip.shareId && (
+        <div className="share-link-row">
+          <input
+            className="share-link-input"
+            type="text"
+            value={shareUrl}
+            readOnly
+          />
+          <button className="btn-share-link" onClick={handleCopyShareLink}>
+            Copy Link
+          </button>
+        </div>
+      )}
     </div>
   );
 };

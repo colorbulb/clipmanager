@@ -3,9 +3,6 @@ import {
   collection,
   doc,
   getDoc,
-  onSnapshot,
-  orderBy,
-  query,
   serverTimestamp,
   updateDoc
 } from 'firebase/firestore';
@@ -31,6 +28,11 @@ export const createShareLink = async ({ clip, ownerId, pin }) => {
     updatedAt: serverTimestamp()
   });
 
+  await updateDoc(doc(db, 'clips', clip.id), {
+    shareId: docRef.id,
+    updatedAt: serverTimestamp()
+  });
+
   return docRef.id;
 };
 
@@ -41,31 +43,6 @@ export const getShareById = async (shareId) => {
     return null;
   }
   return { id: shareSnap.id, ...shareSnap.data() };
-};
-
-export const subscribeToContributions = (shareId, callback) => {
-  const contributionsRef = collection(db, SHARE_COLLECTION, shareId, 'contributions');
-  const q = query(contributionsRef, orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snapshot) => {
-    const contributions = [];
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      contributions.push({
-        id: docSnap.id,
-        ...data,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
-      });
-    });
-    callback(contributions);
-  });
-};
-
-export const addContribution = async (shareId, contribution) => {
-  const contributionsRef = collection(db, SHARE_COLLECTION, shareId, 'contributions');
-  await addDoc(contributionsRef, {
-    ...contribution,
-    createdAt: serverTimestamp()
-  });
 };
 
 export const updateSharedClip = async ({ shareId, clipId, clipData, editorName }) => {
